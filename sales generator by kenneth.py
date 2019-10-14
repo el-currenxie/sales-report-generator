@@ -9,6 +9,7 @@ import sqlite3
 import datetime
 from pathlib import Path
 import sys
+from tkmacosx import Button
 
 # read amazon sales report
 # check if the file has been imported before
@@ -241,30 +242,39 @@ class Application(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.get_csv = tk.Button(self)
-        self.get_csv["text"] = "click Here to import sales data"
-        self.get_csv["command"] = self.update_db
+        self.get_csv = Button(
+            self,
+            text='click Here to import sales data',
+            command=self.update_db
+        )    
         self.get_csv.pack(side="top")
 
-        self.export_sales = tk.Button(self)
-        self.export_sales["text"] = "click Here to Genereate fuiou sales reports"
-        self.export_sales["command"] = self.get_sales_report
+        self.export_sales = Button(
+            self,
+            text='click Here to Genereate fuiou sales reports',
+            command=self.get_sales_report
+        )
         self.export_sales.pack(side="top")
 
-        self.export_sales = tk.Button(self)
-        self.export_sales["text"] = "click Here to Genereate Payeco sales reports"
-        self.export_sales["command"] = self.get_payeco_sales_report
+        self.export_sales = Button(
+            self, 
+            text='click Here to Genereate Payeco sales reports',
+            command=self.get_payeco_sales_report
+        )
         self.export_sales.pack(side="top")
 
-        self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.master.destroy)
+        self.quit = Button(
+            self, 
+            text="QUIT", 
+            fg="red", 
+            command=self.master.destroy
+        )
         self.quit.pack(side="bottom")
 
     def update_db(self):
         messagebox.showinfo("Currenxie", "Select your reports folder")
         reportsDir = filedialog.askdirectory()
         import_amazon_salesdata(reportsDir)
-
 
     def get_sales_report(self):
         messagebox.showinfo("Currenxie", "Select your TRADES FILE")
@@ -276,13 +286,10 @@ class Application(tk.Frame):
         file_path = filedialog.askopenfilename()
         generate_payeco_sales_report(file_path)
 
-
-
-
-root = tk.Tk()
-root.geometry('300x200')
-root.title('Currenxie')
-root.iconbitmap("logo.ico")
-app = Application(master=root)
-app.mainloop()
-
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.geometry('300x200')
+    root.title('Currenxie')
+    root.iconbitmap("logo.ico")
+    app = Application(master=root)
+    app.mainloop()  
