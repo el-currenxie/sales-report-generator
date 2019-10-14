@@ -1,0 +1,11 @@
+colour==0.1.5
+et-xmlfile==1.0.1
+jdcal==1.4.1
+numpy==1.17.2
+openpyxl==3.0.0
+pandas==0.25.1
+Pillow==6.2.0
+python-dateutil==2.8.0
+pytz==2019.3
+six==1.12.0
+tkmacosx==0.0.5
