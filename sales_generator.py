@@ -68,24 +68,56 @@ def import_amazon_salesdata(reports_file_path):
                     try:
 
                         unit_price = round(float(row['item-price']) * float(exchange_rate.get(row['currency'])) / int(row['quantity-shipped']),2)
-                        c.execute("INSERT INTO sales(client, amazon_order_id, product_name, quantity, unit_price, "
-                                  "purchase_date, logistics, logistics_number, receiver, receiver_address, "
-                                  "original_unit_price, original_currency, sales_channel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                  (filename,
-                                   row['amazon-order-id'],
-                                   row['product-name'],
-                                   row['quantity-shipped'],
-                                   unit_price,
-                                   row['purchase-date'],
-                                   row['carrier'],
-                                   row['tracking-number'],
-                                   row['recipient-name'],
-                                   str(row['ship-address-1']) + str(row['ship-address-2']) + str(row['ship-address-3']) + str(row['ship-city']) + str(row['ship-state']) + str(row['ship-postal-code']) + str(row['ship-country']),
-                                   row['item-price']/row['quantity-shipped'],
-                                   row['currency'],
-                                   row['sales-channel']
-                                   )
-                                  )
+                        c.execute("""
+                                INSERT INTO sales(
+                                    client, 
+                                    amazon_order_id, 
+                                    product_name, 
+                                    quantity, 
+                                    unit_price, 
+                                    purchase_date, 
+                                    logistics, 
+                                    logistics_number, 
+                                    receiver, 
+                                    receiver_address, 
+                                    original_unit_price, 
+                                    original_currency, 
+                                    sales_channel,
+                                    ship_address_1,
+                                    ship_address_2,
+                                    ship_address_3,
+                                    ship_city,
+                                    ship_state,
+                                    ship_postal_code,
+                                    ship_country,
+                                    buyer_name
+                                ) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                filename,
+                                row['amazon-order-id'],
+                                row['product-name'],
+                                row['quantity-shipped'],
+                                unit_price,
+                                row['purchase-date'],
+                                row['carrier'],
+                                row['tracking-number'],
+                                row['recipient-name'],
+                                str(row['ship-address-1']) + str(row['ship-address-2']) + str(row['ship-address-3']) + str(row['ship-city']) + str(row['ship-state']) + str(row['ship-postal-code']) + str(row['ship-country']),
+                                row['item-price']/row['quantity-shipped'],
+                                row['currency'],
+                                row['sales-channel'],
+                                row['ship-address-1'],
+                                row['ship-address-2'],
+                                row['ship-address-3'],
+                                row['ship-city'],
+                                row['ship-state'],
+                                row['ship-postal-code'],
+                                row['ship-country'],
+                                row['buyer-name'],
+                            )
+                        )
                     except:
                         print(f"error importing transaction {row['amazon-order-id']}")
     conn.commit()
@@ -320,61 +352,61 @@ def update_db_struct(version):
     migrations_path= os.path.join(Path.home(),'Desktop', 'migrations')
     caribou.upgrade(db_url=dbdir, migration_dir=migrations_path, version=version)
 
-    # udpate record
-    reports_file_path = os.path.join(Path.home(),'Desktop','reports')
-    conn = sqlite3.connect(dbdir)
-    c = conn.cursor()
-    file_list = os.listdir(reports_file_path)
-    file_counter = 0
+    # # udpate record
+    # reports_file_path = os.path.join(Path.home(),'Desktop','reports')
+    # conn = sqlite3.connect(dbdir)
+    # c = conn.cursor()
+    # file_list = os.listdir(reports_file_path)
+    # file_counter = 0
 
-    for filename in file_list:
-        if filename.endswith(".csv"):
-            c.execute("SELECT * FROM imported_files WHERE file_name=?", (filename,))
-            if c.fetchone() is not None:
-                df = pd.read_csv(os.path.join(reports_file_path,filename), sep='\t')
+    # for filename in file_list:
+    #     if filename.endswith(".csv"):
+    #         c.execute("SELECT * FROM imported_files WHERE file_name=?", (filename,))
+    #         if c.fetchone() is not None:
+    #             df = pd.read_csv(os.path.join(reports_file_path,filename), sep='\t')
 
-                try:
-                    df.drop_duplicates('amazon-order-id', keep='first', inplace=True)
-                    df.dropna(0, how='any', subset= ['item-price'], inplace = True)
-                    df.dropna(0, how='any', subset=['currency'], inplace=True)
-                    df.dropna(0, how='any', subset=['quantity-shipped'], inplace=True)
-                except:
-                    print("data operation error")
-                try:
-                    df = df[df['item-price'] != 0]
-                except:
-                    print("type error")
+    #             try:
+    #                 df.drop_duplicates('amazon-order-id', keep='first', inplace=True)
+    #                 df.dropna(0, how='any', subset= ['item-price'], inplace = True)
+    #                 df.dropna(0, how='any', subset=['currency'], inplace=True)
+    #                 df.dropna(0, how='any', subset=['quantity-shipped'], inplace=True)
+    #             except:
+    #                 print("data operation error")
+    #             try:
+    #                 df = df[df['item-price'] != 0]
+    #             except:
+    #                 print("type error")
 
-                for index, row in df.iterrows():            
-                    try:
-                        c.execute("""
-                        update sales
-                        set
-                            ship_address_1 = ?,
-                            ship_address_2 = ?,
-                            ship_address_3 = ?,
-                            ship_city = ?,
-                            ship_state = ?,
-                            ship_postal_code = ?,
-                            ship_country = ?,
-                            buyer_name = ?
-                        where amazon_order_id = ?
-                        """,
-                        (
-                            row['ship-address-1'],
-                            row['ship-address-2'],
-                            row['ship-address-3'],
-                            row['ship-city'],
-                            row['ship-state'],
-                            row['ship-postal-code'],
-                            row['ship-country'],
-                            row['buyer-name'],
-                            row['amazon-order-id']
-                        ))
-                    except:
-                        print(f"error importing transaction {row['amazon-order-id']}")
-    conn.commit()
-    conn.close()
+    #             for index, row in df.iterrows():            
+    #                 try:
+    #                     c.execute("""
+    #                     update sales
+    #                     set
+    #                         ship_address_1,
+    #                         ship_address_2,
+    #                         ship_address_3,
+    #                         ship_city,
+    #                         ship_state,
+    #                         ship_postal_code,
+    #                         ship_country,
+    #                         buyer_name
+    #                     where amazon_order_id
+    #                     """,
+    #                     (
+    #                         row['ship-address-1'],
+    #                         row['ship-address-2'],
+    #                         row['ship-address-3'],
+    #                         row['ship-city'],
+    #                         row['ship-state'],
+    #                         row['ship-postal-code'],
+    #                         row['ship-country'],
+    #                         row['buyer-name'],
+    #                         row['amazon-order-id']
+    #                     ))
+    #                 except:
+    #                     print(f"error importing transaction {row['amazon-order-id']}")
+    # conn.commit()
+    # conn.close()
     print("finish")
 
 class Application(tk.Frame):
@@ -441,9 +473,8 @@ class Application(tk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry('300x200')
-    root.title('Currenxie')
-    root.iconbitmap("logo.ico")
+    root.geometry('400x150')
+    root.title('Currenxie Sales Generator')
+    root.iconbitmap("generator.icns")
     app = Application(master=root)
     app.mainloop()  
-    # import_amazon_salesdata("/Users/ed/Desktop/reports")
