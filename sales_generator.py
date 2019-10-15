@@ -351,6 +351,7 @@ def update_db_struct(version):
     print("migration")
     migrations_path= os.path.join(Path.home(),'Desktop', 'migrations')
     caribou.upgrade(db_url=dbdir, migration_dir=migrations_path, version=version)
+    messagebox.showinfo("Currenxie", "DB Migrations DONE")
 
     # # udpate record
     # reports_file_path = os.path.join(Path.home(),'Desktop','reports')
