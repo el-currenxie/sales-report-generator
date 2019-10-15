@@ -30,8 +30,8 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False , icon='generator.icns')
+          console=False , icon='logo.png')
 app = BUNDLE(exe,
              name='sales_generator.app',
-             icon='images/generator.jpg',
+             icon='logo.png',
              bundle_identifier=None)

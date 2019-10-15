@@ -475,6 +475,6 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.geometry('400x150')
     root.title('Currenxie Sales Generator')
-    root.iconbitmap("generator.icns")
+    root.iconbitmap("logo.icns")
     app = Application(master=root)
     app.mainloop()  
