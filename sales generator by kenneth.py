@@ -10,6 +10,7 @@ import datetime
 from pathlib import Path
 import sys
 from tkmacosx import Button
+import caribou
 
 # read amazon sales report
 # check if the file has been imported before
@@ -42,14 +43,12 @@ def import_amazon_salesdata(reports_file_path):
     file_list = os.listdir(reports_file_path)
     file_counter = 0
 
-
     for filename in file_list:
         if filename.endswith(".csv"):
             c.execute("SELECT * FROM imported_files WHERE file_name=?", (filename,))
             if c.fetchone() is None:
                 c.execute("INSERT INTO imported_files VALUES (?,?)", (filename, datetime.date.today()))
                 file_counter += 1
-
 
                 df = pd.read_csv(os.path.join(reports_file_path,filename), sep='\t')
 
@@ -65,7 +64,7 @@ def import_amazon_salesdata(reports_file_path):
                 except:
                     print("type error")
 
-                for index, row in df.iterrows():
+                for index, row in df.iterrows():            
                     try:
 
                         unit_price = round(float(row['item-price']) * float(exchange_rate.get(row['currency'])) / int(row['quantity-shipped']),2)
@@ -167,9 +166,31 @@ def generate_payeco_sales_report(trade_file):
     df = pd.read_csv(trade_file)
     wb = Workbook()
     ws = wb.active
-    ws.append(["amazon-order-item-id","purchase-date","product-name","quantity-shipped","currency","item-price",
-               "carrier","tracking-number","sales-channel","indicative_fx_rate", "total_amount", "payment_signature_id",
-               "seller_identifier","beneficiary_name","beneficiary_id"])
+    ws.append([
+        "amazon-order-item-id",
+        "purchase-date",
+        "product-name",
+        "quantity-shipped",
+        "currency",
+        "item-price",
+        "carrier",
+        "tracking-number",
+        "sales-channel",
+        "indicative_fx_rate",
+        "total_amount",
+        "payment_signature_id",
+        "seller_identifier",
+        "beneficiary_name",
+        "beneficiary_id",
+        "ship_address_1",
+        "ship_address_2",
+        "ship_address_3",
+        "ship_city",
+        "ship_state",
+        "ship_postal_code",
+        "ship_country",
+        "buyer_name",
+    ])
 
     # check the remaining sales
     c.execute("SELECT SUM(unit_price * quantity) FROM sales WHERE payeco_assignment IS NULL")
@@ -192,11 +213,53 @@ def generate_payeco_sales_report(trade_file):
 
 
         while trade_amount > 0:
-            c.execute("SELECT id, amazon_order_id, product_name, quantity, unit_price, purchase_date, original_currency, "
-                      "original_unit_price, logistics, logistics_number, sales_channel FROM sales WHERE id =? LIMIT 1", (current_id, ))
+            c.execute("""
+            SELECT 
+                id, 
+                amazon_order_id, 
+                product_name, 
+                quantity, 
+                unit_price, 
+                purchase_date, 
+                original_currency, 
+                original_unit_price, 
+                logistics, 
+                logistics_number, 
+                sales_channel,
+                ship_address_1,
+                ship_address_2,
+                ship_address_3,
+                ship_city,
+                ship_state,
+                ship_postal_code,
+                ship_country,
+                buyer_name
+            FROM sales 
+            WHERE id =? LIMIT 1
+            """, (current_id, ))
 
             try:
-                id, order_id, product_name, quantity, unit_price, purchase_date, original_currency, original_unit_price, logistics, logistics_number, sales_channel = c.fetchone()
+                (
+                    id, 
+                    order_id, 
+                    product_name, 
+                    quantity, 
+                    unit_price, 
+                    purchase_date, 
+                    original_currency, 
+                    original_unit_price, 
+                    logistics, 
+                    logistics_number, 
+                    sales_channel,
+                    ship_address_1,
+                    ship_address_2,
+                    ship_address_3,
+                    ship_city,
+                    ship_state,
+                    ship_postal_code,
+                    ship_country,
+                    buyer_name,
+                )= c.fetchone()
             except:
                 messagebox.showinfo("Currenxie", "ERROR")
             unit_price = round(unit_price,5)
@@ -221,9 +284,30 @@ def generate_payeco_sales_report(trade_file):
 
             current_id += 1
 
-            ws.append([order_id, purchase_date, product_name, quantity, original_currency, original_unit_price,
-                       logistics, logistics_number,sales_channel, exchange_rate.get(original_currency), total_price,
-                       trade_reference, client_abbreviation, beneficiary_name, beneficiary_id])
+            ws.append([
+                order_id, 
+                purchase_date, 
+                product_name, 
+                quantity, 
+                original_currency, 
+                original_unit_price,
+                logistics, 
+                logistics_number,sales_channel, 
+                exchange_rate.get(original_currency), 
+                total_price,
+                trade_reference, 
+                client_abbreviation, 
+                beneficiary_name, 
+                beneficiary_id,
+                ship_address_1,
+                ship_address_2,
+                ship_address_3,
+                ship_city,
+                ship_state,
+                ship_postal_code,
+                ship_country,
+                buyer_name,
+            ])
 
 
     wb.save(os.path.join(Path.home(),"Desktop","Payeco-sales-report.xlsx"))
@@ -231,8 +315,67 @@ def generate_payeco_sales_report(trade_file):
     conn.close()
     messagebox.showinfo("Currenxie", "DONE")
 
+def update_db_struct(version):
+    print("migration")
+    migrations_path= os.path.join(Path.home(),'Desktop', 'migrations')
+    caribou.upgrade(db_url=dbdir, migration_dir=migrations_path, version=version)
 
+    # udpate record
+    reports_file_path = os.path.join(Path.home(),'Desktop','reports')
+    conn = sqlite3.connect(dbdir)
+    c = conn.cursor()
+    file_list = os.listdir(reports_file_path)
+    file_counter = 0
 
+    for filename in file_list:
+        if filename.endswith(".csv"):
+            c.execute("SELECT * FROM imported_files WHERE file_name=?", (filename,))
+            if c.fetchone() is not None:
+                df = pd.read_csv(os.path.join(reports_file_path,filename), sep='\t')
+
+                try:
+                    df.drop_duplicates('amazon-order-id', keep='first', inplace=True)
+                    df.dropna(0, how='any', subset= ['item-price'], inplace = True)
+                    df.dropna(0, how='any', subset=['currency'], inplace=True)
+                    df.dropna(0, how='any', subset=['quantity-shipped'], inplace=True)
+                except:
+                    print("data operation error")
+                try:
+                    df = df[df['item-price'] != 0]
+                except:
+                    print("type error")
+
+                for index, row in df.iterrows():            
+                    try:
+                        c.execute("""
+                        update sales
+                        set
+                            ship_address_1 = ?,
+                            ship_address_2 = ?,
+                            ship_address_3 = ?,
+                            ship_city = ?,
+                            ship_state = ?,
+                            ship_postal_code = ?,
+                            ship_country = ?,
+                            buyer_name = ?
+                        where amazon_order_id = ?
+                        """,
+                        (
+                            row['ship-address-1'],
+                            row['ship-address-2'],
+                            row['ship-address-3'],
+                            row['ship-city'],
+                            row['ship-state'],
+                            row['ship-postal-code'],
+                            row['ship-country'],
+                            row['buyer-name'],
+                            row['amazon-order-id']
+                        ))
+                    except:
+                        print(f"error importing transaction {row['amazon-order-id']}")
+    conn.commit()
+    conn.close()
+    print("finish")
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -263,6 +406,13 @@ class Application(tk.Frame):
         )
         self.export_sales.pack(side="top")
 
+        self.export_sales = Button(
+            self, 
+            text='update_db_struct',
+            command=self.updatupdate_db_structe_db
+        )
+        self.export_sales.pack(side="top")
+
         self.quit = Button(
             self, 
             text="QUIT", 
@@ -275,6 +425,9 @@ class Application(tk.Frame):
         messagebox.showinfo("Currenxie", "Select your reports folder")
         reportsDir = filedialog.askdirectory()
         import_amazon_salesdata(reportsDir)
+
+    def updatupdate_db_structe_db(self):
+        update_db_struct("20191015121212")
 
     def get_sales_report(self):
         messagebox.showinfo("Currenxie", "Select your TRADES FILE")
@@ -293,3 +446,4 @@ if __name__ == "__main__":
     root.iconbitmap("logo.ico")
     app = Application(master=root)
     app.mainloop()  
+    # import_amazon_salesdata("/Users/ed/Desktop/reports")
