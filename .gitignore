@@ -4,3 +4,8 @@ venv-2
 *.csv
 
 *.db
+
+dist
+build
+
+__pycahe__
