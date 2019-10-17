@@ -353,7 +353,7 @@ def generate_payeco_sales_report(trade_file):
 
 def update_db_struct(version):
     print("migration")
-    migrations_path= os.path.join(workspace, 'migrations')
+    migrations_path= os.path.join(workspace, 'sql', 'migrations')
     caribou.upgrade(db_url=dbdir, migration_dir=migrations_path, version=version)
     messagebox.showinfo("Currenxie", "DB Migrations DONE")
 
