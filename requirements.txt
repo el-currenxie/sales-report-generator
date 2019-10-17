@@ -1,11 +1,16 @@
+altgraph==0.16.1
 caribou==0.2.1
 colour==0.1.5
 et-xmlfile==1.0.1
 jdcal==1.4.1
+macholib==1.11
+modulegraph==0.17
 numpy==1.17.2
 openpyxl==3.0.0
 pandas==0.25.1
 Pillow==6.2.0
+py2app==0.19
+PyInstaller==3.5
 python-dateutil==2.8.0
 pytz==2019.3
 six==1.12.0

@@ -29,7 +29,11 @@ exchange_rate = {
     "CAD": "5.27",
 }
 
-dbdir = os.path.join(Path.home(),'Desktop','sales.db')
+workspace = os.path.join(Path.home(),'Desktop', 'sales_generator')
+if not os.path.exists(workspace):
+    os.makedirs(workspace)
+
+dbdir = os.path.join(workspace, 'sales.db')
 
 if hasattr(sys, "_MEIPASS"):
     example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
@@ -349,7 +353,7 @@ def generate_payeco_sales_report(trade_file):
 
 def update_db_struct(version):
     print("migration")
-    migrations_path= os.path.join(Path.home(),'Desktop', 'migrations')
+    migrations_path= os.path.join(workspace, 'migrations')
     caribou.upgrade(db_url=dbdir, migration_dir=migrations_path, version=version)
     messagebox.showinfo("Currenxie", "DB Migrations DONE")
 
