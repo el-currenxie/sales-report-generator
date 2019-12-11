@@ -7,6 +7,7 @@ eval $zipCmd
 
 eval "pyinstaller sales_generator.spec "
 eval "cp -r sql ./dist"
+eval "cp -r example_receipt.xlsx ./dist"
 eval "mv dist sales_generator"
 
 eval "zip -r salesGenerator.zip sales_generator"
