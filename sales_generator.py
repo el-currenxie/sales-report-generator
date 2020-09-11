@@ -12,6 +12,8 @@ import sys
 from tkmacosx import Button
 import caribou
 
+from service.update_db_struct import update_db_struct
+
 # read amazon sales report
 # check if the file has been imported before
 # call db function to store the necessary info
@@ -35,10 +37,12 @@ if not os.path.exists(workspace):
 
 dbdir = os.path.join(workspace, 'sales.db')
 
-if hasattr(sys, "_MEIPASS"):
-    example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
-else:
-    example_dir = 'example_receipt.xlsx'
+# if hasattr(sys, "_MEIPASS"):
+#     example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
+# else:
+#     example_dir = 'example_receipt.xlsx'
+
+example_dir = 'example_receipt.xlsx'
 
 
 def import_amazon_salesdata(reports_file_path):
@@ -362,71 +366,6 @@ def generate_payeco_sales_report(trade_file):
     messagebox.showinfo("Currenxie", "DONE")
 
 
-def update_db_struct(version):
-    print("migration")
-    migrations_path = os.path.join(workspace, 'sql', 'migrations')
-    caribou.upgrade(
-        db_url=dbdir, migration_dir=migrations_path, version=version)
-    messagebox.showinfo("Currenxie", "DB Migrations DONE")
-
-    # # udpate record
-    # reports_file_path = os.path.join(Path.home(),'Desktop','reports')
-    # conn = sqlite3.connect(dbdir)
-    # c = conn.cursor()
-    # file_list = os.listdir(reports_file_path)
-    # file_counter = 0
-
-    # for filename in file_list:
-    #     if filename.endswith(".csv"):
-    #         c.execute("SELECT * FROM imported_files WHERE file_name=?", (filename,))
-    #         if c.fetchone() is not None:
-    #             df = pd.read_csv(os.path.join(reports_file_path,filename), sep='\t')
-
-    #             try:
-    #                 df.drop_duplicates('amazon-order-id', keep='first', inplace=True)
-    #                 df.dropna(0, how='any', subset= ['item-price'], inplace = True)
-    #                 df.dropna(0, how='any', subset=['currency'], inplace=True)
-    #                 df.dropna(0, how='any', subset=['quantity-shipped'], inplace=True)
-    #             except:
-    #                 print("data operation error")
-    #             try:
-    #                 df = df[df['item-price'] != 0]
-    #             except:
-    #                 print("type error")
-
-    #             for index, row in df.iterrows():
-    #                 try:
-    #                     c.execute("""
-    #                     update sales
-    #                     set
-    #                         ship_address_1,
-    #                         ship_address_2,
-    #                         ship_address_3,
-    #                         ship_city,
-    #                         ship_state,
-    #                         ship_postal_code,
-    #                         ship_country,
-    #                         buyer_name
-    #                     where amazon_order_id
-    #                     """,
-    #                     (
-    #                         row['ship-address-1'],
-    #                         row['ship-address-2'],
-    #                         row['ship-address-3'],
-    #                         row['ship-city'],
-    #                         row['ship-state'],
-    #                         row['ship-postal-code'],
-    #                         row['ship-country'],
-    #                         row['buyer-name'],
-    #                         row['amazon-order-id']
-    #                     ))
-    #                 except:
-    #                     print(f"error importing transaction {row['amazon-order-id']}")
-    # conn.commit()
-    # conn.close()
-    print("finish")
-
-
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -477,7 +416,9 @@ class Application(tk.Frame):
         import_amazon_salesdata(reportsDir)
 
     def updatupdate_db_structe_db(self):
-        update_db_struct("20191015121212")
+        result = update_db_struct("20191015121212", workspace, dbdir)
+        print(result)
+        messagebox.showinfo(result['title'], result['message'])
 
     def get_sales_report(self):
         messagebox.showinfo("Currenxie", "Select your TRADES FILE")
