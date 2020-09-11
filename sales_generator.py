@@ -37,12 +37,10 @@ if not os.path.exists(workspace):
 
 dbdir = os.path.join(workspace, 'sales.db')
 
-# if hasattr(sys, "_MEIPASS"):
-#     example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
-# else:
-#     example_dir = 'example_receipt.xlsx'
-
-example_dir = 'example_receipt.xlsx'
+if hasattr(sys, "_MEIPASS"):
+    example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
+else:
+    example_dir = 'example_receipt.xlsx'
 
 
 def import_amazon_salesdata(reports_file_path):
@@ -172,6 +170,7 @@ def generate_sales_report(trade_file):
         beneficiary_name = row['Beneficiary Name']
         trade_amount = round(row['Amount'] / 1.0015, 5)
         beneficiary_id = str(row['ID No.'])
+        mobile = str(row['Mobile'])
 
         while trade_amount > 0:
             c.execute(
@@ -203,7 +202,7 @@ def generate_sales_report(trade_file):
             current_id += 1
 
             ws.append([order_id, purchase_date, beneficiary_name, beneficiary_id, "CNY", total_price,
-                       "香港", "CURRENXIE LIMITED", "478788634943", "货物贸易", product_name, quantity, unit_price])
+                       "香港", "CURRENXIE LIMITED", "478788634943", "货物贸易", product_name, quantity, unit_price, '', '', '', product_name, mobile, 'Amazon'])
 
     wb.save(os.path.join(Path.home(), "Desktop", "FUIOU-sales-report.xlsx"))
     conn.commit()
@@ -411,24 +410,35 @@ class Application(tk.Frame):
         self.quit.pack(side="bottom")
 
     def update_db(self):
-        messagebox.showinfo("Currenxie", "Select your reports folder")
-        reportsDir = filedialog.askdirectory()
-        import_amazon_salesdata(reportsDir)
+        try:
+            messagebox.showinfo("Currenxie", "Select your reports folder")
+            reportsDir = filedialog.askdirectory()
+            import_amazon_salesdata(reportsDir)
+        except Exception as e:
+            messagebox.showinfo("Error", str(e))
 
     def updatupdate_db_structe_db(self):
-        result = update_db_struct("20191015121212", workspace, dbdir)
-        print(result)
-        messagebox.showinfo(result['title'], result['message'])
+        try:
+            result = update_db_struct("20191015121212", workspace, dbdir)
+            messagebox.showinfo(result['title'], result['message'])
+        except Exception as e:
+            messagebox.showinfo("Error", str(e))
 
     def get_sales_report(self):
-        messagebox.showinfo("Currenxie", "Select your TRADES FILE")
-        file_path = filedialog.askopenfilename()
-        generate_sales_report(file_path)
+        try:
+            messagebox.showinfo("Currenxie", "Select your TRADES FILE")
+            file_path = filedialog.askopenfilename()
+            generate_sales_report(file_path)
+        except Exception as e:
+            messagebox.showinfo("Error", str(e))
 
     def get_payeco_sales_report(self):
-        messagebox.showinfo("Currenxie", "Select your TRADES FILE")
-        file_path = filedialog.askopenfilename()
-        generate_payeco_sales_report(file_path)
+        try:
+            messagebox.showinfo("Currenxie", "Select your TRADES FILE")
+            file_path = filedialog.askopenfilename()
+            generate_payeco_sales_report(file_path)
+        except Exception as e:
+            messagebox.showinfo("Error", str(e))
 
 
 if __name__ == "__main__":

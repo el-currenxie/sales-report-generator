@@ -12,12 +12,13 @@ macholib==1.11
 mccabe==0.6.1
 modulegraph==0.17
 numpy==1.17.2
-openpyxl==3.0.0
+openpyxl==3.0.5
 pandas==1.1.2
 Pillow==7.2.0
 py2app==0.19
 pycodestyle==2.6.0
-PyInstaller==3.5
+pyinstaller==4.0
+pyinstaller-hooks-contrib==2020.7
 pylint==2.6.0
 python-dateutil==2.8.0
 pytz==2019.3
