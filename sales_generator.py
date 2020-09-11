@@ -35,12 +35,10 @@ if not os.path.exists(workspace):
 
 dbdir = os.path.join(workspace, 'sales.db')
 
-# if hasattr(sys, "_MEIPASS"):
-#     example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
-# else:
-#     example_dir = 'example_receipt.xlsx'
-
-example_dir = 'example_receipt.xlsx'
+if hasattr(sys, "_MEIPASS"):
+    example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
+else:
+    example_dir = 'example_receipt.xlsx'
 
 
 def import_amazon_salesdata(reports_file_path):
