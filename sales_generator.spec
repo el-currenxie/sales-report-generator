@@ -6,7 +6,7 @@ block_cipher = None
 a = Analysis(['sales_generator.py'],
              pathex=['/Users/ed/Downloads/Kenneth'],
              binaries=[],
-             datas=[],
+             datas=[('resource/example_receipt.xlsx', 'resource')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -30,8 +30,8 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False , icon='images/logo.icns')
+          console=False , icon='resource/icn/logo.icns')
 app = BUNDLE(exe,
              name='sales_generator.app',
-             icon='images/logo.icns',
+             icon='resource/icn/logo.icns',
              bundle_identifier=None)

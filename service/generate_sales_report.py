@@ -32,13 +32,13 @@ def generate_sales_report(trade_file, dbdir, example_dir):
         "SELECT SUM(unit_price * quantity) FROM sales WHERE assignment IS NULL")
 
     if c.fetchone() < df.Amount.sum():
-        print("Currenxie", "Not Enough Sales Data")
+        messagebox.showinfo("Currenxie", "Not Enough Sales Data")
         return
 
     c.execute("SELECT id FROM sales WHERE assignment IS NULL ORDER BY id LIMIT 1")
 
     current_id = int(c.fetchone()[0])
-    print({"current_id": current_id})
+    print(current_id)
 
     for index, row in df.iterrows():
         trade_reference = row['Serial No.']
@@ -46,7 +46,6 @@ def generate_sales_report(trade_file, dbdir, example_dir):
         trade_amount = round(row['Amount'] / 1.0015, 5)
         beneficiary_id = str(row['ID No.'])
         mobile = str(row['Mobile'])
-        print(mobile)
 
         while trade_amount > 0:
             c.execute(
@@ -55,7 +54,7 @@ def generate_sales_report(trade_file, dbdir, example_dir):
             try:
                 id, order_id, product_name, quantity, unit_price, purchase_date = c.fetchone()
             except:
-                print("error")
+                messagebox.showinfo("Currenxie", "ERROR")
             unit_price = round(unit_price, 2)
             product_name = str(product_name)[:34]
             total_price = unit_price * quantity
@@ -73,15 +72,17 @@ def generate_sales_report(trade_file, dbdir, example_dir):
                 c.execute("UPDATE sales SET assignment =? WHERE id =?",
                           (trade_reference, id))
             except:
-                print("error")
+                messagebox.showinfo("Currenxie", "ERROR")
 
             current_id += 1
+
             ws.append([order_id, purchase_date, beneficiary_name, beneficiary_id, "CNY", total_price,
                        "香港", "CURRENXIE LIMITED", "478788634943", "货物贸易", product_name, quantity, unit_price, '', '', '', product_name, mobile, 'Amazon'])
 
     wb.save(os.path.join(Path.home(), "Desktop", "FUIOU-sales-report.xlsx"))
     conn.commit()
     conn.close()
+    messagebox.showinfo("Currenxie", "DONE")
 
 
 generate_sales_report(

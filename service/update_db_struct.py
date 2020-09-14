@@ -4,7 +4,7 @@ import os
 
 def update_db_struct(version, workspace, dbdir):
     print("migration")
-    migrations_path = os.path.join(workspace, 'sql', 'migrations')
+    migrations_path = os.path.join(workspace, 'resource', 'sql', 'migrations')
     caribou.upgrade(
         db_url=dbdir, migration_dir=migrations_path, version=version)
 

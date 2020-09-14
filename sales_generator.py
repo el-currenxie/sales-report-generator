@@ -1,3 +1,4 @@
+import pkgutil
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
@@ -31,16 +32,24 @@ exchange_rate = {
     "CAD": "5.27",
 }
 
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = Path(sys._MEIPASS)
+    except Exception:
+        base_path = Path(__file__).parent
+
+    return os.path.join(base_path, relative_path)
+
+
 workspace = os.path.join(Path.home(), 'Desktop', 'sales_generator')
 if not os.path.exists(workspace):
     os.makedirs(workspace)
 
 dbdir = os.path.join(workspace, 'sales.db')
 
-if hasattr(sys, "_MEIPASS"):
-    example_dir = os.path.join(sys._MEIPASS, 'example_receipt.xlsx')
-else:
-    example_dir = 'example_receipt.xlsx'
+example_dir = resource_path('resource/example_receipt.xlsx')
 
 
 def import_amazon_salesdata(reports_file_path):
@@ -66,7 +75,8 @@ def import_amazon_salesdata(reports_file_path):
                                        keep='first', inplace=True)
                     df.dropna(0, how='any', subset=[
                               'item-price'], inplace=True)
-                    df.dropna(0, how='any', subset=['currency'], inplace=True)
+                    df.dropna(0, how='any', subset=[
+                              'currency'], inplace=True)
                     df.dropna(0, how='any', subset=[
                               'quantity-shipped'], inplace=True)
                 except:
@@ -83,18 +93,18 @@ def import_amazon_salesdata(reports_file_path):
                             exchange_rate.get(row['currency'])) / int(row['quantity-shipped']), 2)
                         c.execute("""
                                 INSERT INTO sales(
-                                    client, 
-                                    amazon_order_id, 
-                                    product_name, 
-                                    quantity, 
-                                    unit_price, 
-                                    purchase_date, 
-                                    logistics, 
-                                    logistics_number, 
-                                    receiver, 
-                                    receiver_address, 
-                                    original_unit_price, 
-                                    original_currency, 
+                                    client,
+                                    amazon_order_id,
+                                    product_name,
+                                    quantity,
+                                    unit_price,
+                                    purchase_date,
+                                    logistics,
+                                    logistics_number,
+                                    receiver,
+                                    receiver_address,
+                                    original_unit_price,
+                                    original_currency,
                                     sales_channel,
                                     ship_address_1,
                                     ship_address_2,
@@ -104,7 +114,7 @@ def import_amazon_salesdata(reports_file_path):
                                     ship_postal_code,
                                     ship_country,
                                     buyer_name
-                                ) 
+                                )
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                                   (
@@ -266,17 +276,17 @@ def generate_payeco_sales_report(trade_file):
 
         while trade_amount > 0:
             c.execute("""
-            SELECT 
-                id, 
-                amazon_order_id, 
-                product_name, 
-                quantity, 
-                unit_price, 
-                purchase_date, 
-                original_currency, 
-                original_unit_price, 
-                logistics, 
-                logistics_number, 
+            SELECT
+                id,
+                amazon_order_id,
+                product_name,
+                quantity,
+                unit_price,
+                purchase_date,
+                original_currency,
+                original_unit_price,
+                logistics,
+                logistics_number,
                 sales_channel,
                 ship_address_1,
                 ship_address_2,
@@ -286,7 +296,7 @@ def generate_payeco_sales_report(trade_file):
                 ship_postal_code,
                 ship_country,
                 buyer_name
-            FROM sales 
+            FROM sales
             WHERE id =? LIMIT 1
             """, (current_id, ))
 
