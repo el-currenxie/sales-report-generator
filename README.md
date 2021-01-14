@@ -14,7 +14,7 @@ python3
 $ pip3 install virtualenv
 $ virtualenv venv
 $ source venv/bin/activate
-$ pip install -r requirement.txt
+$ pip install -r requirements.txt
 $ python sales_generator.py
 ```
 
@@ -37,3 +37,8 @@ virtualenv venv --no-site-pasckage
 archive HEAD -o \${PWD##\*/}.zip
 pyinstaller sales_generator.spec
 ```
+
+### test
+
+import folder which contains the sale file
+click fuiou

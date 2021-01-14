@@ -26,15 +26,6 @@ from service.update_db_struct import update_db_struct
 # check remaining sales vol before executing
 
 
-exchange_rate = {
-    "EUR": "7.72",
-    "GBP": "8.52",
-    "USD": "6.88",
-    "JPY": "0.064",
-    "CAD": "5.27",
-}
-
-
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -90,6 +81,13 @@ class Application(tk.Frame):
         )
         self.export_sales.pack(side="top")
 
+        self.export_sales = Button(
+            self,
+            text='create_db_struct',
+            command=self.updatupdate_db_structe_db
+        )
+        self.export_sales.pack(side="top")
+
         self.quit = Button(
             self,
             text="QUIT",
@@ -103,6 +101,13 @@ class Application(tk.Frame):
             messagebox.showinfo("Currenxie", "Select your reports folder")
             reportsDir = filedialog.askdirectory()
             result = import_amazon_salesdata(reportsDir, dbdir, example_dir)
+            messagebox.showinfo(result['title'], result['message'])
+        except Exception as e:
+            messagebox.showinfo("Error", str(e))
+
+    def create_db(self):
+        try:
+            result = update_db_struct("20000101000000", workspace, dbdir)
             messagebox.showinfo(result['title'], result['message'])
         except Exception as e:
             messagebox.showinfo("Error", str(e))
