@@ -1,5 +1,6 @@
 venv
 venv-2
+.venv
 
 *.csv
 
@@ -11,3 +12,5 @@ build
 __pycache__
 
 *.zip
+.vscode
+.idea
